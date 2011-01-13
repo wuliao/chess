@@ -9,11 +9,11 @@ void  CreatBoard(void)
 {   
     u32_t k=0 ,i=0,j =0;
 
-    for(k=0; k < (P_NUM - 1)* SPACE ;k++ )
+    for(k=0; k < (P_NUM )* SPACE ;k++ )
     {
-       for(j = 0; j < (V_NUM - 1) * SPACE; j++ )
+       for(j = 0; j < (V_NUM ) * SPACE; j++ )
        {
-            fb_one_pixel( STARTING_X  + j , STARTING_Y + k ,0x0000ff00);
+            fb_one_pixel( STARTING_X - SPACE/2  + j , STARTING_Y - SPACE/2 + k ,0X00F4A460);
        }     
     }
 
@@ -28,26 +28,28 @@ void  CreatBoard(void)
     }
 }
 
-void setdot(int x, int y )
+void chessman(int x,int y)
 {
-    int y1 =((y - STARTING_Y)/SPACE)*SPACE + STARTING_Y,      y2 = ((y - STARTING_Y)/SPACE)*SPACE + STARTING_Y +SPACE;
-    int x1 =((x - STARTING_X)/SPACE)*SPACE + STARTING_X ,     x2 = ((x - STARTING_X)/SPACE)*SPACE + STARTING_X +SPACE;
     
-    if((x2 -x) > (x - x1) )
-    {
-        x = x1;
-    }
-    else
-    {
-        x = x2;    
-    }
-    if( (y2 - y) > (y - y1) )
-    {
-        y = y1 ;
-    }
-    else
-    {
-        y = y2 ;
-    }
-    fb_one_pixel(x , y, 0x00ff0000);
+        int y1 =((y - STARTING_Y)/SPACE)*SPACE + STARTING_Y,      y2 = ((y - STARTING_Y)/SPACE)*SPACE + STARTING_Y +SPACE;
+        int x1 =((x - STARTING_X)/SPACE)*SPACE + STARTING_X ,     x2 = ((x - STARTING_X)/SPACE)*SPACE + STARTING_X +SPACE;
+    
+        if((x2 -x) > (x - x1) )
+        {
+            x = x1;
+        }
+        else
+        {
+            x = x2;    
+        }
+        if( (y2 - y) > (y - y1) )
+        {
+            y = y1 ;
+        }
+        else
+        {
+            y = y2 ;
+        }
+        fb_circle( x , y, 13, 0x00ffffff);
+     
 }

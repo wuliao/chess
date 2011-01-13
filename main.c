@@ -6,6 +6,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <sys/ioctl.h>
+#include <unistd.h>
 #include "main.h"
 void create_scr_fb(void)
 {
@@ -77,7 +78,7 @@ int fb_one_pixel(int x , int y , u32_t color)
 }*/
 int main(int argc, const char *argv[])
 {
-    int i=0;
+  //  int i=0;
     create_scr_fb();
     //scan_scr();
   /*  for(i=0;i < 600; i++)
@@ -86,6 +87,11 @@ int main(int argc, const char *argv[])
         usleep(50);
     }  */   
    CreatBoard();
-   setdot(900,700);
+//   chessman(500,300);
+ // draw_cursor(500,300);
+ // sleep(4);
+ // restore_shape(500,300);
+ // draw_cursor(600,200);
+    mouse_doing();    
     return 0;
 }
