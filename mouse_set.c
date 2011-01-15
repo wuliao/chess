@@ -47,6 +47,7 @@ static u32_t cursor_pixel[C_WIDTH*C_HEIGHT] ={
 static u32_t shape_save[C_WIDTH*C_HEIGHT];
 char board[V_NUM*P_NUM];
 char who = 1;
+u32_t color_choice = 0x000000ff;
 
 int save_shape(int x, int y)
 {
@@ -88,7 +89,10 @@ int draw_cursor(int x,int y)
     {
         for(j = 0;j< C_WIDTH;j++)
         {
-            fb_one_pixel( x+j, y+i,cursor_pixel[j+i*C_WIDTH]);     
+            if(cursor_pixel[j+i*C_WIDTH] != T__ )
+            {
+                fb_one_pixel( x+j, y+i,cursor_pixel[j+i*C_WIDTH]);     
+            }    
         }
     }
     return 0;
@@ -114,31 +118,46 @@ int get_m_info(int fd,m_event * event)
 int check_five(int x,int y)
 {
     int i = 0;
+    int j =0;
     char counter = 0;
     char storage = 0;
+    char nx = 0;
+    char ny = 0;
 
+    char n_x[4]= {0,1,1,1};
+    char n_y[4]= {1,0,1,-1};
+    
     storage = board[x + y*V_NUM];
     if(storage == 0)
     {
         return 0;
     }
-    counter = 1;
+    for(j=0; j<4;j++ )
+    {
+    
+        counter = 1;
+        nx = x;
+        ny = y;
 
-    for(i = 1;i< 5; i++)
-    {
-        if(board[x+i+(y+i)*V_NUM] == storage)
+        for(i = 1;i< 5; i++)
         {
-            counter++;
+            nx += n_x[j];
+            ny += n_y[j];
+            if(board[nx+ny*V_NUM] == storage)
+            {
+                
+                counter++;
+            }
+            else
+            {
+                break;
+            }
         }
-        else
-        {
-            break;
+        if(counter == 5)
+        {   
+            return counter;
         }
-    }
-    if(counter == 5)
-    {
-        return counter;
-    }
+     }   
     return 0;
 }
 int chess_count(int x, int y)
@@ -180,7 +199,12 @@ int check_all(void)
     }
     return 0;
 }
-
+int print_choice(void)
+{
+    fb_circle(40,100,20 ,0x000000ff);
+    fb_circle(40,200,20 ,0x00ff0000);
+    return 0;
+}
 
 
 int mouse_doing(void)
@@ -197,15 +221,15 @@ int mouse_doing(void)
         exit(1);
      } 
         draw_cursor(mx,my);
-        
-                printf("%d %d \n",my ,mx);
+        print_choice(); 
+        printf("%d %d \n",my ,mx);
         while(1)
         {
             if(get_m_info(fd ,&mevent) > 0)
             {
                 
                 restore_shape(mx,my);
-
+                print_choice();
                 mx += mevent.dx;
                 my += mevent.dy;
                 mx = ((mx >= 0 ) ? mx : 0);
@@ -224,9 +248,11 @@ int mouse_doing(void)
                 {
                     case 1:
                              restore_shape(mx,my);
-                             chessman(mx , my);
-                             chess_count(mx,my);
-                             check_all();
+                             if(chessman(mx , my) == 0)
+                             {
+                                chess_count(mx,my);
+                                check_all();
+                             }
                              draw_cursor(mx , my);
                              break;
                     case 2 : break;
