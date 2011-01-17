@@ -4,8 +4,15 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <unistd.h>
+#include <math.h>
 #include "main.h"
-
+#include <errno.h>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <sys/select.h>
 typedef struct {
         int dx;
         int dy;
@@ -23,7 +30,26 @@ typedef struct {
 #define   STARTING_X  100
 #define   STARTING_Y  40
 #define   SPACE       30
+
+typedef struct{
+    char dest;
+    char souce;
+    char type;
+    char len;
+    int x1;
+    int y1;
+}msg_t;
+char buffer[BUFFER_SIZE];
+struct sockaddr_in server;
+//char *p = (msg_t *)buffer;
+socklen_t server_len;
+int client_sock;
+int n,nely;
+u32_t color;
+fd_set allset;
 extern v_info_t fb_v;
+int mmx, mmy;
+
 static u32_t cursor_pixel[C_WIDTH*C_HEIGHT] ={
       BORD,  T__,T__,T__,T__,T__,T__,T__,T__,T__,
       BORD, BORD,T__,T__,T__,T__,T__,T__,T__,T__, 
@@ -210,11 +236,11 @@ int print_choice(void)
 int mouse_doing(void)
 {
     m_event mevent;
-    int fd;
+    int fd, flag = 0,a;
     int mx = 512;
     int my = 384;
     
-    fd = open("/dev/input/mice",O_RDWR|O_NONBLOCK);
+    fd = open("/dev/input/mice",O_RDWR);
     if(fd < 0)
     {
         perror("opean");
@@ -223,11 +249,28 @@ int mouse_doing(void)
         draw_cursor(mx,my);
         print_choice(); 
         printf("%d %d \n",my ,mx);
+        a = fd > client_sock ? fd : client_sock;
+        
         while(1)
-        {
-            if(get_m_info(fd ,&mevent) > 0)
-            {
+        {   
+            FD_ZERO(&allset);
+            FD_SET(client_sock, &allset);    
+            FD_SET(fd,&allset);
+            nely = select(fd+1,&allset,NULL,NULL,NULL);   
                 
+            if(nely < 0)
+            {   
+                perror("select error");
+                exit(EXIT_FAILURE);
+            }
+           if(flag == 0)
+           {
+            color = 0x000000ff;
+           }
+           if(FD_ISSET(fd,&allset))
+            {
+              if(get_m_info(fd ,&mevent) > 0)
+              {    
                 restore_shape(mx,my);
                 print_choice();
                 mx += mevent.dx;
@@ -243,25 +286,62 @@ int mouse_doing(void)
                 {
                     my = (fb_v.h-C_HEIGHT);
                 }
-                draw_cursor(mx , my);
                 switch(mevent.button)
                 {
                     case 1:
-                             restore_shape(mx,my);
-                             if(chessman(mx , my) == 0)
-                             {
-                                chess_count(mx,my);
-                                check_all();
-                             }
-                             draw_cursor(mx , my);
+                            
+                            //    save_shape(mx,  my);
+                                //restore_shape(mx,my);
+                                if(flag == 0)
+                                {   
+                                    if(chessman(mx , my, color) == 0)
+                                    {
+                                        msg_t *p = (msg_t *)buffer;
+                                        p -> x1 = (mx-STARTING_X+SPACE/2)/SPACE;
+                                        p -> y1 = (my-STARTING_Y+SPACE/2)/SPACE;
+                                        server_len = sizeof(server);
+                                        n = sendto(client_sock,buffer,BUFFER_SIZE,0,(struct sockaddr *)&server,server_len);
+                                        flag = 1;
+                           
+                                        printf("%d\n",n);
+                                        if(n < 0)
+                                        {
+                                            perror("sendto");
+                                            exit(EXIT_FAILURE);
+                                        }
+                                        chess_count(mx,my);
+                                        check_all();
+                                    }        
+                                }
+                                 
                              break;
                     case 2 : break;
                     case 3 : break;
                     default : break;
                 }
-             } 
-             usleep(1000);
-          }
+                draw_cursor(mx , my);
+              } 
+           } 
+                
+                if ( FD_ISSET(client_sock,&allset))
+                {
+                    server_len = sizeof(server);
+                    if(flag == 1)
+                    {
+                        n = recvfrom(client_sock,buffer,BUFFER_SIZE,0,(struct sockaddr *)&server,&server_len);
+                        color = 0x0000ff00;
+                
+                        if(n>0)
+                        {
+                            msg_t *p = (msg_t *)buffer;
+                            mmx = p->x1*SPACE + STARTING_X;
+                            mmy = p->y1*SPACE + STARTING_Y;
+                            chessman(mmx,mmy, color);
+                            chess_count(mmx,mmy); check_all(); }
+                            flag = 0;
+                    }
+                }
+            }
      return 0;
 
 }

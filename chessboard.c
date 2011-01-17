@@ -48,9 +48,9 @@ int choose_color(int x,int y)
     return 0;
 }
 
-int chessman(int x,int y)
+int chessman(int x,int y, u32_t color_choice)
 {
-      
+/*      
       if((x < 100) || (x >(30*29 +100)))
       {
         choose_color(x,y);
@@ -60,7 +60,7 @@ int chessman(int x,int y)
       {
         choose_color(x,y);
         return 1;
-      }
+      }*/
         
         int y1 =((y - STARTING_Y)/SPACE)*SPACE + STARTING_Y,      y2 = ((y - STARTING_Y)/SPACE)*SPACE + STARTING_Y +SPACE;
         int x1 =((x - STARTING_X)/SPACE)*SPACE + STARTING_X ,     x2 = ((x - STARTING_X)/SPACE)*SPACE + STARTING_X +SPACE;

@@ -8,6 +8,17 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include "main.h"
+#include <time.h>
+#include <errno.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
+
+struct sockaddr_in server;
+int client_sock;
+
 void create_scr_fb(void)
 {
     int fd;
@@ -48,50 +59,29 @@ int fb_one_pixel(int x , int y , u32_t color)
     return 0;
 }
 
-/*void scan_scr(void)
-{
-    int i = 0;
-    int j = 0;
-
-    u32_t *p = fb_v.fb_mem;
-
-    //for(i=0; i<fb_v.h;i++)
-    //{
-        i = 200;
-        for(j=0; j<fb_v.w; j++)
-        {
-            p[i*fb_v.w+j] = 0x000000ff;    // da yin yi hang
-        }
-        j=512;
-        for(i=0; i<fb_v.h; i++)
-        {
-            //p[i*fb_v.w+400]= 0x00ff0000;  // da yin yi lie
-            fb_one_pixel(j,i,0x00ff0000);
-            //usleep(20);
-        }
-        for(i=0; i<fb_v.h; i++)
-        {
-            p[i*fb_v.h+400]= 0x00ff0000;
-        }
-        //}
         
-}*/
 int main(int argc, const char *argv[])
 {
-  //  int i=0;
     create_scr_fb();
-    //scan_scr();
-  /*  for(i=0;i < 600; i++)
-    {
-        fb_line(1,1,10+i,10 + i ,0x00ff0000+80*i);  //hua xian han shu
-        usleep(50);
-    }  */   
-   CreatBoard();
-//   chessman(500,300);
- // draw_cursor(500,300);
- // sleep(4);
- // restore_shape(500,300);
- // draw_cursor(600,200);
-    mouse_doing();    
-    return 0;
+    CreatBoard();
+//    socket(AF_INET,SOCK_DGRAM,0 );
+  if((client_sock = socket(AF_INET,SOCK_DGRAM,0 ))<0)
+   {
+        fprintf(stderr, "%s\n",strerror(errno));           
+        exit(EXIT_FAILURE);  
+   }
+   else
+   {        
+        printf("creat sock ok!\n");
+   }
+   
+   bzero(&server,sizeof(server));
+   server.sin_family = AF_INET;
+   server.sin_port = htons(SERVER_PORT);
+   server.sin_addr.s_addr = inet_addr(argv[1]);
+//   draw_cursor(500,345);
+  // client_sock = mouse_doing();    
+    mouse_doing();
+   // close(client_sock);
+    return 0;      
 }
